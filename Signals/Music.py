@@ -18,6 +18,12 @@ noteFrequencies = {
    "B": 987.77,
 }
 
+""" NOTES CLASS """
+class Note:
+   def __init__(self, note):
+      self.name = note
+      self.signal = Signal.createSignal([noteFrequencies[note]])
+
 
 """ CHORDS CLASS """
 class Chord:
@@ -39,6 +45,11 @@ class Chord:
          noteSequence = [0, 3, 6]
       elif chordType == "Augmented":
          noteSequence = [0, 4, 8]
+      elif chordType == "Major7":
+         noteSequence = [0, 4, 7, 11]
+      elif chordType == "Minor7":
+         noteSequence = [0, 3, 7, 10]
+      
       
       rootIndex = 0
       for i in range(len(notes)):
@@ -65,3 +76,21 @@ class Chord:
       print("Name: ", self.name)
       print("Notes: ", self.notes)
       print("Frequencies: ", self.frequencies)
+
+
+""" COMPOSITION CLASS """
+class Composition:
+   def __init__(self, *args):
+      self.createCompositionSignal(args)
+   
+   def createCompositionSignal(self, args):
+      self.signal = args[0]
+      print(self.signal)
+      for signal in args[1:]:
+         self.signal.pushBackSound(signal.sound)
+      print(self.signal)
+      
+   
+   def addSignals(self, signals):
+      for signal in signals:
+         self.signal.pushBackSound(signal.sound)

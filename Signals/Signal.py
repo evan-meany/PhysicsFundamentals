@@ -6,67 +6,77 @@ sampleRate = 44100.0
 
 """ SOUND CLASS """
 class Sound:
-   def __init__(self, frequency, totalTime):
+   def __init__(self, *args):
       self.time = []
       self.amplitude = []
-      self.frequency = frequency
-      self.totalTime = totalTime
       self.timeStep = 1 / sampleRate
-      self.createSoundWave()
 
+      if len(args) == 0:
+         self.totalTime = 0
+      else:
+         self.totalTime = args[1]
+         self.createSoundWave(args[0])
 
-   def createSoundWave(self):
+   def createSoundWave(self, frequency):
       self.time.clear()
       self.amplitude.clear()
 
       for currentTime in np.arange(0, self.totalTime, self.timeStep):
          self.time.append(currentTime)
-         self.amplitude.append(math.sin(currentTime * self.frequency * 2 * math.pi))
+         self.amplitude.append(math.sin(currentTime * frequency * 2 * math.pi))
 
 
 """ SIGNAL CLASS """
 class Signal:
    def __init__(self, sounds = []):
-      self.time = []
-      self.amplitude = []
       self.sounds = sounds
-      self.findStepAndTotalTime()
-      self.createSignalFromSounds()
+      if len(sounds) == 1:
+         self.sound = sounds[0]
+      else:
+         self.sound = Sound()
+         self.findStepAndTotalTime()
+         self.createSignalFromSounds()
 
 
    def findStepAndTotalTime(self):
-      self.totalTime = 0
+      self.sound.totalTime = 0
       for sound in self.sounds:
-         if sound.totalTime > self.totalTime:
-            self.totalTime = sound.totalTime
-      self.timeStep = self.totalTime / sampleRate
+         if sound.totalTime > self.sound.totalTime:
+            self.sound.totalTime = sound.totalTime
 
 
    def createSignalFromSounds(self):
-      self.time.clear()
-      self.amplitude.clear()
-
-      for currentTime in np.arange(0, self.totalTime, self.timeStep):
-         self.time.append(currentTime)
+      for currentTime in np.arange(0, self.sound.totalTime, self.sound.timeStep):
+         self.sound.time.append(currentTime)
       
-      for index in range(len(self.time)):
+      for index in range(len(self.sound.time)):
          amplitudeTotal = 0
 
          for sound in self.sounds:
             if index < len(sound.time):
                amplitudeTotal += sound.amplitude[index]
 
-         self.amplitude.append(amplitudeTotal)
+         self.sound.amplitude.append(amplitudeTotal)
 
    def scaleAmplitude(self, scaleTo):
-      scaleFactor = scaleTo / max(self.amplitude)
-      self.amplitude = [x * scaleFactor for x in self.amplitude]
-      print("scale", scaleFactor)
-      print(max(self.amplitude))
+      scaleFactor = scaleTo / max(self.sound.amplitude)
+      self.sound.amplitude = [x * scaleFactor for x in self.sound.amplitude]
 
+   # 
+   # def addSound(self, sound):
+
+
+   def pushBackSound(self, sound):
+      lastSignalIndex = len(self.sound.time)
+      currentTime = self.sound.totalTime
+      for i in range(len(sound.time)):
+         currentTime += self.sound.timeStep
+         self.sound.time.append(currentTime)
+         self.sound.amplitude.append(sound.amplitude[i])
+      self.sound.totalTime = currentTime
 
    def plot(self, labels, timeRange, plotAll):
-         plt.plot(self.time, self.amplitude, label = labels[0])
+         plt.plot(self.sound.time, self.sound.amplitude, label = labels[0])
 
          if plotAll == True:
             for i in range(len(self.sounds)):
@@ -85,7 +95,7 @@ def createSignal(frequencies):
    sounds = []
 
    for frequency in frequencies:
-      sound = Sound(frequency, 1)
+      sound = Sound(frequency, 0.5)
       sounds.append(sound)
    
    return Signal(sounds)
